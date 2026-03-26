@@ -4,6 +4,8 @@ import TaskManager from '../components/TaskManager'
 import ProjectManager from '../components/ProjectManager'
 import AgentManager from '../components/AgentManager'
 import Dashboard from '../components/Dashboard'
+import EmailManager from '../components/EmailManager'
+import CalendarManager from '../components/CalendarManager'
 
 export default function Home() {
   const router = useRouter()
@@ -151,6 +153,26 @@ export default function Home() {
             >
               Agents
             </button>
+            <button
+              onClick={() => setCurrentPage('email')}
+              className={`py-4 px-2 border-b-2 font-medium transition ${
+                currentPage === 'email'
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              Email
+            </button>
+            <button
+              onClick={() => setCurrentPage('calendar')}
+              className={`py-4 px-2 border-b-2 font-medium transition ${
+                currentPage === 'calendar'
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              Calendar
+            </button>
           </div>
         </div>
       </nav>
@@ -175,6 +197,8 @@ export default function Home() {
           />
         )}
         {currentPage === 'agents' && <AgentManager />}
+        {currentPage === 'email' && <EmailManager />}
+        {currentPage === 'calendar' && <CalendarManager />}
       </main>
     </div>
   )
