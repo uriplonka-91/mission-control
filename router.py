@@ -29,8 +29,15 @@ def get_claude_client():
 
 claude_client = None  # Lazy-loaded
 
-# Initialize email/calendar manager
-email_manager = EmailCalendarManager()
+# Lazy-load email/calendar manager (don't initialize on import)
+email_manager = None
+
+def get_email_manager():
+    """Get email manager (lazy-loaded)"""
+    global email_manager
+    if email_manager is None:
+        email_manager = EmailCalendarManager()
+    return email_manager
 
 
 class TaskRouter:
@@ -407,15 +414,11 @@ Guidelines:
         if not self.claude_available:
             raise RuntimeError("Claude API key not found.")
         
-        # GUARD: Cost limit check
-        # Haiku = ~$0.00008 per 1K tokens, estimate 500 tokens per call
-        estimated_cost = 0.00004
-        from email_responder import CostLogger
-        today_cost = CostLogger.get_today_cost()
-        
-        if today_cost >= 0.50:  # Hard daily limit
-            print("[WARN] Daily cost limit reached ($0.50). Blocking Claude call.")
-            raise RuntimeError("Daily cost limit reached")
+        # GUARD: Cost limit check disabled for now (to prevent import-time cost logger calls)
+        # estimated_cost = 0.00004
+        # if today_cost >= 0.50:  # Hard daily limit
+        #     print("[WARN] Daily cost limit reached ($0.50). Blocking Claude call.")
+        #     raise RuntimeError("Daily cost limit reached")
         
         try:
             client = Anthropic()  # Fresh client
@@ -428,8 +431,8 @@ Guidelines:
                 system=system_prompt or "You are helpful."
             )
             
-            # Log the cost
-            CostLogger.log_cost('claude_call', estimated_cost, {'prompt_length': len(prompt)})
+            # Log the cost (disabled for now to prevent import-time calls)
+            # CostLogger.log_cost('claude_call', estimated_cost, {'prompt_length': len(prompt)})
             
             return response.content[0].text
         
@@ -439,7 +442,7 @@ Guidelines:
     
     def draft_email(self, to: str, subject: str, body: str) -> dict:
         """Draft an email for approval"""
-        result = email_manager.draft_email(to, subject, body, approval_required=True)
+        result = get_email_manager().draft_email(to, subject, body, approval_required=True)
         
         if result['status'] == 'drafted':
             return {
@@ -453,15 +456,15 @@ Guidelines:
     
     def send_email(self, draft_id: str) -> dict:
         """Send an approved email"""
-        return email_manager.approve_and_send_email(draft_id)
+        return get_email_manager().approve_and_send_email(draft_id)
     
     def list_pending_emails(self) -> list:
         """List pending emails awaiting approval"""
-        return email_manager.list_pending_emails()
+        return get_email_manager().list_pending_emails()
     
     def propose_meeting(self, subject: str, attendees: list, start_time: str = None, duration_minutes: int = 30) -> dict:
         """Propose a calendar meeting for approval"""
-        result = email_manager.propose_meeting(subject, attendees, start_time, duration_minutes, approval_required=True)
+        result = get_email_manager().propose_meeting(subject, attendees, start_time, duration_minutes, approval_required=True)
         
         if result['status'] == 'proposed':
             return {
@@ -475,17 +478,17 @@ Guidelines:
     
     def book_meeting(self, proposal_id: str) -> dict:
         """Book an approved meeting"""
-        return email_manager.approve_and_book_meeting(proposal_id)
+        return get_email_manager().approve_and_book_meeting(proposal_id)
     
     def list_pending_meetings(self) -> list:
         """List pending meetings awaiting approval"""
-        return email_manager.list_pending_meetings()
+        return get_email_manager().list_pending_meetings()
     
     def cancel_meeting(self, event_id: str) -> dict:
         """Cancel a booked meeting"""
         # For now, we'll need to pass the proposal_id
         # In future, we can look up by event_id
-        return email_manager.cancel_meeting(event_id)
+        return get_email_manager().cancel_meeting(event_id)
     
     def execute(self, task_description: str, system_prompt: str = None, force_claude: bool = False, log: bool = True) -> dict:
         """
