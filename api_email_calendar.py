@@ -1,9 +1,10 @@
 """
-Flask API for email and calendar operations
+Flask API for email, calendar, and cost operations
 """
 
 from flask import Flask, request, jsonify
 from router import TaskRouter
+from cost_anomaly_detector import AnomalyDetector
 from functools import wraps
 
 app = Flask(__name__)
@@ -136,6 +137,51 @@ def preview_meeting(proposal_id):
     return jsonify({'error': 'Meeting not found'}), 404
 
 ---
+
+## COST ENDPOINTS
+
+@app.route('/api/costs', methods=['GET'])
+@require_password
+def get_costs():
+    """Get cost data"""
+    detector = AnomalyDetector()
+    breakdown = detector.get_cost_breakdown_today()
+    
+    # Format for frontend
+    cost_data = {
+        'today': {
+            'total': sum(d['total_cost'] for d in breakdown.values()),
+            'email': breakdown.get('email_response_drafted', {}).get('total_cost', 0),
+            'calendar': breakdown.get('calendar_event_booked', {}).get('total_cost', 0),
+            'other': sum(d['total_cost'] for k, d in breakdown.items() if k not in ['email_response_drafted', 'calendar_event_booked']),
+            'email_count': breakdown.get('email_response_drafted', {}).get('count', 0),
+            'calendar_count': breakdown.get('calendar_event_booked', {}).get('count', 0),
+            'other_count': sum(d['count'] for k, d in breakdown.items() if k not in ['email_response_drafted', 'calendar_event_booked'])
+        },
+        'limits': {
+            'daily_budget': 0.50,
+            'max_emails': 50,
+            'max_claude': 10,
+            'auto_filter_blocks': 80
+        },
+        'daily_stats': {}
+    }
+    
+    return jsonify(cost_data)
+
+@app.route('/api/cost-anomalies', methods=['GET'])
+@require_password
+def get_cost_anomalies():
+    """Get cost anomalies and leaks"""
+    detector = AnomalyDetector()
+    report = detector.generate_report()
+    
+    return jsonify({
+        'anomalies': report['anomalies'],
+        'cost_by_area': report['cost_by_area'],
+        'alerts': report['alerts'],
+        'total_today': report['total_today']
+    })
 
 ## STATUS ENDPOINT
 

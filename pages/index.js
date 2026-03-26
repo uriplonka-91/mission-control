@@ -6,6 +6,7 @@ import AgentManager from '../components/AgentManager'
 import Dashboard from '../components/Dashboard'
 import EmailManager from '../components/EmailManager'
 import CalendarManager from '../components/CalendarManager'
+import CostDashboard from '../components/CostDashboard'
 
 export default function Home() {
   const router = useRouter()
@@ -173,6 +174,16 @@ export default function Home() {
             >
               Calendar
             </button>
+            <button
+              onClick={() => setCurrentPage('costs')}
+              className={`py-4 px-2 border-b-2 font-medium transition ${
+                currentPage === 'costs'
+                  ? 'border-blue-500 text-blue-400'
+                  : 'border-transparent text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              Costs
+            </button>
           </div>
         </div>
       </nav>
@@ -199,6 +210,7 @@ export default function Home() {
         {currentPage === 'agents' && <AgentManager />}
         {currentPage === 'email' && <EmailManager />}
         {currentPage === 'calendar' && <CalendarManager />}
+        {currentPage === 'costs' && <CostDashboard />}
       </main>
     </div>
   )
