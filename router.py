@@ -402,22 +402,40 @@ Guidelines:
         
         return response.json()['response']
     
-    def call_claude(self, prompt: str, system_prompt: str = None, model: str = "claude-3-5-sonnet-20241022") -> str:
-        """Call Claude via API"""
+    def call_claude(self, prompt: str, system_prompt: str = None, model: str = "claude-3-5-haiku-20241022") -> str:
+        """Call Claude via API (with cost guards)"""
         if not self.claude_available:
-            raise RuntimeError("Claude API key not found. Set ANTHROPIC_API_KEY environment variable.")
+            raise RuntimeError("Claude API key not found.")
         
-        client = Anthropic()  # Fresh client
-        messages = [{"role": "user", "content": prompt}]
+        # GUARD: Cost limit check
+        # Haiku = ~$0.00008 per 1K tokens, estimate 500 tokens per call
+        estimated_cost = 0.00004
+        from email_responder import CostLogger
+        today_cost = CostLogger.get_today_cost()
         
-        response = client.messages.create(
-            model=model,
-            max_tokens=2048,
-            messages=messages,
-            system=system_prompt or "You are a helpful AI assistant."
-        )
+        if today_cost >= 0.50:  # Hard daily limit
+            print("[WARN] Daily cost limit reached ($0.50). Blocking Claude call.")
+            raise RuntimeError("Daily cost limit reached")
         
-        return response.content[0].text
+        try:
+            client = Anthropic()  # Fresh client
+            messages = [{"role": "user", "content": prompt}]
+            
+            response = client.messages.create(
+                model=model,  # Use Haiku (cheaper)
+                max_tokens=500,  # Lower max tokens
+                messages=messages,
+                system=system_prompt or "You are helpful."
+            )
+            
+            # Log the cost
+            CostLogger.log_cost('claude_call', estimated_cost, {'prompt_length': len(prompt)})
+            
+            return response.content[0].text
+        
+        except Exception as e:
+            print(f"[ERROR] Claude call failed: {e}")
+            raise
     
     def draft_email(self, to: str, subject: str, body: str) -> dict:
         """Draft an email for approval"""

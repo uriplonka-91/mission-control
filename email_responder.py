@@ -236,9 +236,11 @@ class EmailResponder:
             })
             return {'status': 'skipped', 'reason': 'claude_budget_exhausted', 'cost': 0}
         
-        # Ask Claude
+        # Ask Claude (minimal prompt = fewer tokens)
         try:
-            prompt = f"Subject: {subject}\n\nBody: {body}\n\nDoes this email need a response? Answer only 'yes' or 'no'."
+            # Truncate body to 200 chars max to save tokens
+            body_short = body[:200]
+            prompt = f"Subject: {subject[:100]}\nBody: {body_short}\n\nNeeds response? Yes/No only."
             response = self.router.call_claude(prompt)
             
             self.claude_calls_today += 1
@@ -299,16 +301,6 @@ class EmailResponder:
 
 
 if __name__ == "__main__":
-    responder = EmailResponder()
-    
-    # Test
-    print("[*] Email Responder Test\n")
-    
-    result = responder.process_email(
-        from_email="test@example.com",
-        subject="Question about project",
-        body="Hi, do you have time to discuss the project tomorrow?"
-    )
-    
-    print(f"Result: {result}")
-    print(f"\nCost today: ${responder.today_cost:.4f}")
+    print("[DISABLED] Email responder disabled to prevent token leak.")
+    print("Enable only when needed for production use.")
+    # responder = EmailResponder()  # DISABLED
