@@ -47,12 +47,27 @@ export default function CostDashboard() {
   }, []);
 
   if (!costData) {
-    return <div className="p-6 bg-white rounded-lg shadow">Loading cost data...</div>;
+    return (
+      <div className="p-6 bg-white rounded-lg shadow">
+        <p className="text-gray-600">Loading cost data...</p>
+      </div>
+    );
   }
 
   const today = costData.today || {};
   const stats = costData.daily_stats || {};
   const limits = costData.limits || {};
+  
+  // Default values if no data
+  if (!today.total) {
+    today.total = 0;
+    today.email = 0;
+    today.calendar = 0;
+    today.other = 0;
+    today.email_count = 0;
+    today.calendar_count = 0;
+    today.other_count = 0;
+  }
 
   // Calculate percentages
   const dailyUsed = (today.total || 0) / (limits.daily_budget || 0.50);

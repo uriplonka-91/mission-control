@@ -144,19 +144,23 @@ def preview_meeting(proposal_id):
 @require_password
 def get_costs():
     """Get cost data"""
-    detector = AnomalyDetector()
-    breakdown = detector.get_cost_breakdown_today()
+    try:
+        detector = AnomalyDetector()
+        breakdown = detector.get_cost_breakdown_today()
+    except:
+        breakdown = {}
     
     # Format for frontend
     cost_data = {
         'today': {
-            'total': sum(d['total_cost'] for d in breakdown.values()),
-            'email': breakdown.get('email_response_drafted', {}).get('total_cost', 0),
-            'calendar': breakdown.get('calendar_event_booked', {}).get('total_cost', 0),
-            'other': sum(d['total_cost'] for k, d in breakdown.items() if k not in ['email_response_drafted', 'calendar_event_booked']),
-            'email_count': breakdown.get('email_response_drafted', {}).get('count', 0),
-            'calendar_count': breakdown.get('calendar_event_booked', {}).get('count', 0),
-            'other_count': sum(d['count'] for k, d in breakdown.items() if k not in ['email_response_drafted', 'calendar_event_booked'])
+            'total': sum(d.get('total_cost', 0) for d in breakdown.values()) if breakdown else 0,
+            'email': breakdown.get('email_response_drafted', {}).get('total_cost', 0) if breakdown else 0,
+            'calendar': breakdown.get('calendar_event_booked', {}).get('total_cost', 0) if breakdown else 0,
+            'other': sum(d.get('total_cost', 0) for k, d in breakdown.items() if k not in ['email_response_drafted', 'calendar_event_booked']) if breakdown else 0,
+            'email_count': breakdown.get('email_response_drafted', {}).get('count', 0) if breakdown else 0,
+            'calendar_count': breakdown.get('calendar_event_booked', {}).get('count', 0) if breakdown else 0,
+            'other_count': sum(d.get('count', 0) for k, d in breakdown.items() if k not in ['email_response_drafted', 'calendar_event_booked']) if breakdown else 0,
+            'recent_transactions': []
         },
         'limits': {
             'daily_budget': 0.50,
@@ -173,14 +177,22 @@ def get_costs():
 @require_password
 def get_cost_anomalies():
     """Get cost anomalies and leaks"""
-    detector = AnomalyDetector()
-    report = detector.generate_report()
+    try:
+        detector = AnomalyDetector()
+        report = detector.generate_report()
+    except:
+        report = {
+            'anomalies': [],
+            'cost_by_area': [],
+            'alerts': [],
+            'total_today': 0
+        }
     
     return jsonify({
-        'anomalies': report['anomalies'],
-        'cost_by_area': report['cost_by_area'],
-        'alerts': report['alerts'],
-        'total_today': report['total_today']
+        'anomalies': report.get('anomalies', []),
+        'cost_by_area': report.get('cost_by_area', []),
+        'alerts': report.get('alerts', []),
+        'total_today': report.get('total_today', 0)
     })
 
 ## STATUS ENDPOINT
