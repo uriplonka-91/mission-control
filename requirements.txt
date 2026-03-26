@@ -1,0 +1,10 @@
+# Mission Control - Python Dependencies
+
+# API Client
+anthropic>=0.25.0
+
+# HTTP
+requests>=2.31.0
+
+# Utilities
+python-dotenv>=1.0.0

@@ -34,3 +34,13 @@ yarn-error.log*
 .vscode
 .idea
 *.swp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.Python
+.pytest_cache/
+
+.vercel
