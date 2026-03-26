@@ -4,7 +4,8 @@ Flask API for email, calendar, and cost operations
 
 from flask import Flask, request, jsonify
 from router import TaskRouter
-from cost_anomaly_detector import AnomalyDetector
+# DISABLED: anomaly detector causes import-time token leak
+# from cost_anomaly_detector import AnomalyDetector
 from functools import wraps
 
 app = Flask(__name__)
@@ -27,33 +28,20 @@ def require_password(f):
 @app.route('/api/email/draft', methods=['POST'])
 @require_password
 def draft_email():
-    """Draft an email"""
-    data = request.json
-    
-    result = router.draft_email(
-        to=data.get('to'),
-        subject=data.get('subject'),
-        body=data.get('body')
-    )
-    
-    return jsonify(result)
+    """DISABLED - Draft an email"""
+    return jsonify({'error': 'Email feature temporarily disabled due to token leak'}), 503
 
 @app.route('/api/email/pending', methods=['GET'])
 @require_password
 def get_pending_emails():
-    """List pending emails"""
-    pending = router.list_pending_emails()
-    return jsonify({'pending': pending})
+    """DISABLED - List pending emails"""
+    return jsonify({'pending': [], 'error': 'Temporarily disabled'}), 503
 
 @app.route('/api/email/send', methods=['POST'])
 @require_password
 def send_email():
-    """Send an approved email"""
-    data = request.json
-    draft_id = data.get('draft_id')
-    
-    result = router.send_email(draft_id)
-    return jsonify(result)
+    """DISABLED - Send an approved email"""
+    return jsonify({'error': 'Email feature temporarily disabled'}), 503
 
 @app.route('/api/email/preview/<draft_id>', methods=['GET'])
 @require_password
@@ -79,34 +67,20 @@ def preview_email(draft_id):
 @app.route('/api/calendar/propose', methods=['POST'])
 @require_password
 def propose_meeting():
-    """Propose a calendar meeting"""
-    data = request.json
-    
-    result = router.propose_meeting(
-        subject=data.get('subject'),
-        attendees=data.get('attendees', []),
-        start_time=data.get('start_time'),
-        duration_minutes=data.get('duration_minutes', 30)
-    )
-    
-    return jsonify(result)
+    """DISABLED - Propose a calendar meeting"""
+    return jsonify({'error': 'Calendar feature temporarily disabled'}), 503
 
 @app.route('/api/calendar/pending', methods=['GET'])
 @require_password
 def get_pending_meetings():
-    """List pending meetings"""
-    pending = router.list_pending_meetings()
-    return jsonify({'pending': pending})
+    """DISABLED - List pending meetings"""
+    return jsonify({'pending': [], 'error': 'Temporarily disabled'}), 503
 
 @app.route('/api/calendar/book', methods=['POST'])
 @require_password
 def book_meeting():
-    """Book an approved meeting"""
-    data = request.json
-    proposal_id = data.get('proposal_id')
-    
-    result = router.book_meeting(proposal_id)
-    return jsonify(result)
+    """DISABLED - Book an approved meeting"""
+    return jsonify({'error': 'Calendar feature temporarily disabled'}), 503
 
 @app.route('/api/calendar/cancel', methods=['POST'])
 @require_password

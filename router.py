@@ -10,7 +10,8 @@ import hashlib
 from datetime import datetime
 from pathlib import Path
 from anthropic import Anthropic
-from email_calendar import EmailCalendarManager
+# DISABLED: email_calendar import causes token leak
+# from email_calendar import EmailCalendarManager
 
 # Configuration
 PHI_ENDPOINT = "http://localhost:11434/api/generate"
@@ -440,55 +441,36 @@ Guidelines:
             print(f"[ERROR] Claude call failed: {e}")
             raise
     
+    # EMAIL/CALENDAR METHODS DISABLED - causes token leak
+    # Will be re-enabled after root cause is fixed
+    
     def draft_email(self, to: str, subject: str, body: str) -> dict:
-        """Draft an email for approval"""
-        result = get_email_manager().draft_email(to, subject, body, approval_required=True)
-        
-        if result['status'] == 'drafted':
-            return {
-                'status': 'drafted',
-                'preview': result['preview'],
-                'draft_id': result['draft_id'],
-                'message': 'Email drafted. Show to user for approval.'
-            }
-        else:
-            return result
+        """DISABLED - Draft an email for approval"""
+        return {'error': 'Email feature temporarily disabled due to token leak'}
     
     def send_email(self, draft_id: str) -> dict:
-        """Send an approved email"""
-        return get_email_manager().approve_and_send_email(draft_id)
+        """DISABLED - Send an approved email"""
+        return {'error': 'Email feature temporarily disabled due to token leak'}
     
     def list_pending_emails(self) -> list:
-        """List pending emails awaiting approval"""
-        return get_email_manager().list_pending_emails()
+        """DISABLED - List pending emails"""
+        return []
     
     def propose_meeting(self, subject: str, attendees: list, start_time: str = None, duration_minutes: int = 30) -> dict:
-        """Propose a calendar meeting for approval"""
-        result = get_email_manager().propose_meeting(subject, attendees, start_time, duration_minutes, approval_required=True)
-        
-        if result['status'] == 'proposed':
-            return {
-                'status': 'proposed',
-                'preview': result['preview'],
-                'proposal_id': result['proposal_id'],
-                'message': 'Meeting proposed. Show to user for approval.'
-            }
-        else:
-            return result
+        """DISABLED - Propose a calendar meeting"""
+        return {'error': 'Calendar feature temporarily disabled due to token leak'}
     
     def book_meeting(self, proposal_id: str) -> dict:
-        """Book an approved meeting"""
-        return get_email_manager().approve_and_book_meeting(proposal_id)
+        """DISABLED - Book an approved meeting"""
+        return {'error': 'Calendar feature temporarily disabled due to token leak'}
     
     def list_pending_meetings(self) -> list:
-        """List pending meetings awaiting approval"""
-        return get_email_manager().list_pending_meetings()
+        """DISABLED - List pending meetings"""
+        return []
     
     def cancel_meeting(self, event_id: str) -> dict:
-        """Cancel a booked meeting"""
-        # For now, we'll need to pass the proposal_id
-        # In future, we can look up by event_id
-        return get_email_manager().cancel_meeting(event_id)
+        """DISABLED - Cancel a booked meeting"""
+        return {'error': 'Calendar feature temporarily disabled due to token leak'}
     
     def execute(self, task_description: str, system_prompt: str = None, force_claude: bool = False, log: bool = True) -> dict:
         """
